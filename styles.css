@@ -1,0 +1,12 @@
+body {
+    display: flex;
+}
+.sidebar {
+    width: 280px;
+}
+.content {
+    flex-grow: 1;
+    background-image: url('img/fond.png');
+    background-size: auto;
+    background-position: center;
+}
