@@ -1,6 +1,24 @@
-function updateButtonState(buttonNumber) {
-    const newState = prompt("Enter new state (disponible, Plein, Sigma, TDR):");
-    const value = prompt("Enter value (optional):")
+function openModal(buttonNumber) {
+    $('#buttonNumberInput').val(buttonNumber);
+    $('#buttonModal').modal('show');
+}
+
+function updateButtonState(buttonNumber,id) {
+    switch(id) {
+        case "TDR":
+            $('#buttonModal').modal('show');
+            break;
+        case "Sigma":
+            $('#buttonModal').modal('show');
+            break;
+        case "Plein":
+            $('#buttonModal').modal('show');
+            break;
+        default:
+            $('#buttonModal').modal('show');
+      } 
+
+    const date = Date.now();
     fetch('php/update_button.php', {
         method: 'POST',
         headers: {
@@ -8,7 +26,7 @@ function updateButtonState(buttonNumber) {
         },
         body: new URLSearchParams({
             'button_number': buttonNumber,
-            'new_state': newState,
+            'date': date,
             'value': value
         })
     })
@@ -20,3 +38,28 @@ function updateButtonState(buttonNumber) {
         console.error('Error:', error);
     });
 }
+
+function domReady(fn) {
+    if (
+        document.readyState === "complete" ||
+        document.readyState === "interactive"
+    ) {
+        setTimeout(fn, 1000);
+    } else {
+        document.addEventListener("DOMContentLoaded", fn);
+    }
+}
+
+domReady(function () {
+
+    // If found you qr code
+    function onScanSuccess(decodeText, decodeResult) {
+        alert("QR Code Scanné :" + decodeText, decodeResult);
+    }
+
+    let htmlscanner = new Html5QrcodeScanner(
+        "my-qr-reader",
+        { fps: 10, qrbos: 250 }
+    );
+    htmlscanner.render(onScanSuccess);
+});

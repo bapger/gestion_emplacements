@@ -30,9 +30,10 @@
 </head>
 <body>
     <h1>Scan QR Code</h1>
-    <video id="preview"></video>
-    <div id="result"></div>
-    <script src="https://unpkg.com/instascan@1.0.0/build/instascan.min.js"></script>
-    <script src="scan.js"></script>
+    <div class="section">
+        <div id="my-qr-reader">
+        </div>
+    </div>
+
 </body>
 </html>
