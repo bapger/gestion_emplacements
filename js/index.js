@@ -3,7 +3,10 @@ function openModal(buttonNumber) {
     $('#buttonModal').modal('show');
 }
 
+sessionStorage.setItem('decodeText',"None")
+
 function updateButtonState(buttonNumber,id) {
+    sessionStorage.setItem("currentButton",buttonNumber)
     switch(id) {
         case "TDR":
             $('#buttonModal').modal('show');
@@ -16,16 +19,26 @@ function updateButtonState(buttonNumber,id) {
             break;
         default:
             $('#buttonModal').modal('show');
-      } 
-
+    } 
+}
+    
+function saveValues(){
     const date = Date.now();
+    var value = sessionStorage.getItem('decodeText')
+    var button_number=sessionStorage.getItem("currentButton")
+    if (value=="None"){
+        window.onerror = function(msg, url, linenumber) {
+            alert('Error message: '+msg+'\nURL: '+url+'\nLine Number: '+linenumber);
+            return true;
+        }
+    }
     fetch('php/update_button.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-            'button_number': buttonNumber,
+            'button_number': button_number,
             'date': date,
             'value': value
         })
@@ -51,10 +64,10 @@ function domReady(fn) {
 }
 
 domReady(function () {
-
-    // If found you qr code
     function onScanSuccess(decodeText, decodeResult) {
-        alert("QR Code Scanné :" + decodeText, decodeResult);
+        alert("QR Code Scanné :" + decodeText);
+        sessionStorage.setItem('decodeText', decodeText);
+        document.getElementById("num").innerHTML = "Camion :"+decodeText;
     }
 
     let htmlscanner = new Html5QrcodeScanner(
@@ -63,3 +76,4 @@ domReady(function () {
     );
     htmlscanner.render(onScanSuccess);
 });
+

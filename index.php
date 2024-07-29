@@ -36,6 +36,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <h1 id="num">Camion: </h1>
                     <form id="updateForm">
                         <input type="hidden" id="buttonNumberInput" name="button_number">
                         <div class="form-group" id="Plein_item" style='visibility: collapse;'>
@@ -54,8 +55,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="updateButtonState()">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-secondary" onclick="saveValues()">Continuer</button>
                 </div>
             </div>
         </div>

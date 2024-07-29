@@ -5,11 +5,10 @@ session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $buttonNumber = $_POST['button_number'];
-    $newState = $_POST['new_state'];
+    $newState = $_POST['date'];
     $value = $_POST['value'];
     $ipAddress = $_SERVER['REMOTE_ADDR'];
 
-    // Ouvrir la connexion à la base de données
     $bdd = ouverture_bdd();
 
     // Mettre à jour l'état du camion et enregistrer les informations du scan
