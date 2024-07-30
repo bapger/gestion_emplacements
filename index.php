@@ -47,7 +47,7 @@ $buttons = $sqlite->fetchButtons();
                 <div class="modal-body">
                     <h1 id="num">Camion: </h1>
                     <form id="updateForm">
-                        <input type="hidden" id="buttonNumberInput" name="button_number">
+                    <input type="hidden" id="buttonNumberInput" name="button_number">
                         <div class="form-group" id="Plein_item" style='visibility: collapse;'>
                             <label for="newState">Passage en :</label>
                             <select class="form-control" id="newState" name="new_state">
@@ -81,74 +81,71 @@ $buttons = $sqlite->fetchButtons();
 
             $('#buttonNumberInput').val(buttonId);
 
+            var newStateSelect = document.getElementById('newState');
+            var qrCodeSection = document.getElementById('Disponible_item');
+            var qrCodeStatus = document.getElementById('Tri_item');
+
             switch (buttonState) {
                 case 'Disponible':
-                    $('#newState').val('Plein');
-                    $('#qrCodeSection').show();
-                    $('#qrCodeStatus').text('Valider le camion et passer l\'emplacement en disponible.').show();
+                    newStateSelect.value = 'Plein';
+                    qrCodeSection.style.display = 'block';
+                    qrCodeStatus.innerHTML = 'Valider le camion et passer l\'emplacement en disponible.';
+                    qrCodeStatus.style.display = 'block';
                     break;
                 case 'Plein':
-                    $('#newState').val('TDR');
-                    $('#qrCodeSection').show();
-                    $('#qrCodeStatus').text('Sélectionner un état pour le camion.').show();
+                    newStateSelect.value = 'TDR';
+                    qrCodeSection.style.display = 'block';
+                    qrCodeStatus.innerHTML = 'Sélectionner un état pour le camion.';
+                    qrCodeStatus.style.display = 'block';
                     break;
                 case 'TDR':
                 case 'Sigma':
-                    $('#newState').val('Disponible');
-                    $('#qrCodeSection').show();
-                    $('#qrCodeStatus').text('Mettre l\'emplacement en libre.').show();
+                    newStateSelect.value = 'Disponible';
+                    qrCodeSection.style.display = 'block';
+                    qrCodeStatus.innerHTML = 'Mettre l\'emplacement en libre.';
+                    qrCodeStatus.style.display = 'block';
                     break;
                 default:
-                    $('#newState').val(buttonState);
-                    $('#qrCodeSection').hide();
-                    $('#qrCodeStatus').hide();
+                    newStateSelect.value = buttonState;
+                    qrCodeSection.style.display = 'none';
+                    qrCodeStatus.style.display = 'none';
             }
-
+        
             $('#buttonModal').modal('show');
         }
 
         function saveValues() {
-            // Récupérer les valeurs du formulaire
-            var buttonNumber = document.getElementById('buttonNumberInput').value;
-            var newState = document.getElementById('newState').value;
-            var value = ''; // Assurez-vous de définir cette valeur correctement
-                
-            // Créer une instance de XMLHttpRequest
+            var buttonNumberInput= document.querySelector('#buttonNumberInput')
+            var buttonNumber = buttonNumberInput.dataset.buttonId;
+            var e=document.getElementById('newState');
+            var newState = e.options[e.selectedIndex].text;
+            var value = sessionStorage.getItem("decodeText");
+        
             var xhr = new XMLHttpRequest();
-                
-            // Définir la fonction à appeler lorsque l'état de la requête change
+
             xhr.onreadystatechange = function () {
                 if (this.readyState === XMLHttpRequest.DONE) {
                     if (this.status === 200) {
-                        // La réponse du serveur
                         var response = this.responseText;
                         alert(response);
                     
-                        // Fermer le modal
                         $('#buttonModal').modal('hide');
-                    
-                        // Recharger la page pour voir les mises à jour
                         location.reload();
                     } else {
                         console.error('Erreur:', this.statusText);
                     }
                 }
             };
-        
-            // Configurer la requête
+
             xhr.open('POST', 'php/update_button.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        
-            // Préparer les données à envoyer
+
             var data = 'button_number=' + encodeURIComponent(buttonNumber) +
                        '&new_state=' + encodeURIComponent(newState) +
                        '&value=' + encodeURIComponent(value);
-        
-            // Envoyer la requête
+
             xhr.send(data);
         }
-
-
-    </script>
+</script>
 </body>
 </html>
