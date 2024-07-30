@@ -1,9 +1,10 @@
 <?php
+
 if (!function_exists('ouverture_bdd')) {
     function ouverture_bdd(){
         try {
             // Connexion à la base de données SQLite
-            $bdd = new PDO('sqlite:bdd.db');
+            $bdd = new PDO('sqlite:../db/bdd.db');
             // Définir le mode d'erreur de PDO sur Exception
             $bdd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $bdd;
@@ -23,41 +24,53 @@ if (!function_exists('fermeture_bdd')) {
 }
 
 if (!function_exists('update_camion_state')) {
-    function update_camion_state($bdd, $buttonNumber, $newState, $value, $ipAddress) {
-        // Récupérer l'ID et l'état actuel du bouton
-        $stmt = $bdd->prepare("SELECT id, camion_value FROM buttons WHERE button_number = ?");
-        $stmt->execute([$buttonNumber]);
-        $button = $stmt->fetch(PDO::FETCH_ASSOC);
+    function update_camion_state($bdd, $buttonId, $newState, $value, $ipAddress) {
+        try {
+            // Récupérer l'ID et l'état actuel du bouton
+            $stmt = $bdd->prepare("SELECT camion_value, state FROM buttons WHERE id = ?");
+            $stmt->execute([$buttonId]);
+            $button = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($button) {
-            $buttonId = $button['id'];
-            $currentCamionValue = $button['camion_value'];
+            if ($button) {
+                $currentCamionValue = $button['camion_value'];
+                $currentButtonState = $button['state'];
 
-            // Vérifier si le camion est en "Disponible" et le passer en "Plein"
-            $stmt = $bdd->prepare("SELECT new_state FROM camion WHERE value = ?");
-            $stmt->execute([$currentCamionValue]);
-            $camion = $stmt->fetch(PDO::FETCH_ASSOC);
+                // Vérifier et mettre à jour l'état du camion
+                if (in_array($newState, ["Fini", "En cours", "Disponible", "Plein", "TDR", "Sigma"])) {
+                    if ($currentButtonState === "Disponible" && $newState === "Plein") {
+                        $stmt = $bdd->prepare("UPDATE camion SET state = ? WHERE value = ?");
+                        $stmt->execute([$newState, $value]);
+                    } else if ($currentButtonState === "Plein" && in_array($newState, ["TDR", "Sigma"])) {
+                        $stmt = $bdd->prepare("UPDATE camion SET state = ? WHERE value = ?");
+                        $stmt->execute([$newState, $value]);
+                    } else if (in_array($currentButtonState, ["TDR", "Sigma"]) && $newState === "Disponible") {
+                        $stmt = $bdd->prepare("UPDATE camion SET state = ? WHERE value = ?");
+                        $stmt->execute([$newState, $value]);
+                    }
 
-            if ($camion && $camion['new_state'] === 'Disponible' && $newState === 'Plein') {
-                // Mettre à jour l'état du camion
-                $stmt = $bdd->prepare("UPDATE camion SET new_state = ?, ip_address = ? WHERE value = ?");
-                $stmt->execute([$newState, $ipAddress, $value]);
+                    // Mettre à jour le bouton avec le camion lié et son état
+                    $stmt = $bdd->prepare("UPDATE buttons SET camion_value = ?, state = ? WHERE id = ?");
+                    $stmt->execute([$value, $newState, $buttonId]);
 
-                // Enregistrer le changement dans l'historique
-                $stmt = $bdd->prepare("INSERT INTO camion_changes (button_id, camion_value, new_state, ip_address) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$buttonId, $value, $newState, $ipAddress]);
+                    // Enregistrer le changement dans l'historique
+                    $stmt = $bdd->prepare("INSERT INTO camion_changes (button_id, camion_value, new_state, ip_address) VALUES (?, ?, ?, ?)");
+                    $stmt->execute([$buttonId, $value, $newState, $ipAddress]);
 
-                // Afficher les informations dans la console
-                echo "<script>console.log('Camion state updated successfully. IP: $ipAddress, QR Code: $value, Time: ' + new Date().toISOString());</script>";
-
-                echo "Camion state updated successfully.";
+                    echo "<script>console.log('Camion state updated successfully. IP: $ipAddress, QR Code: $value, Time: ' + new Date().toISOString());</script>";
+                    echo "Camion state updated successfully.";
+                } else {
+                    echo "L'état du camion est invalide.";
+                }
             } else {
-                echo "Camion is not in 'Disponible' state or incorrect new state.";
+                echo "Button not found.";
             }
-        } else {
-            echo "Button not found.";
+        } catch (PDOException $e) {
+            echo "Erreur lors de la mise à jour de l'état du camion : " . $e->getMessage();
         }
     }
 }
+
+
+
 
 

@@ -1,4 +1,18 @@
-<!DOCTYPE html>
+<?php 
+require 'vendor/autoload.php';
+
+use App\SQLiteConnection;
+use App\SQLiteCreateTable;
+
+$pdo = (new SQLiteConnection())->connect();
+$sqlite = new SQLiteCreateTable($pdo);
+
+$sqlite->createTables();
+$sqlite->initButtons();
+$buttons = $sqlite->fetchButtons();
+?>
+
+<!DOCTYPE html> 
 <html>
 <head>
     <meta charset='utf-8'>
@@ -12,21 +26,16 @@
     <div class="content">
         <div class="button-grid">
         <?php
-                $rows = 4;
-                $cols = 10;
-                $buttonNumber = 1;
-                for ($i = 1; $i <= $rows; $i++) {
-                    for ($j = 1; $j <= $cols; $j++) {
-                        echo "<button class='btn btn-primary grid-button' id='Disponible' data-button-number='{$buttonNumber}' onclick='updateButtonState({$buttonNumber},this.id)'>{$buttonNumber}</button>";
-                        $buttonNumber++;
-                    }
-                }
-            ?>
+            foreach ($buttons as $button) {
+                $buttonState = $button['state'] ?? 'Disponible'; // Valeur par défaut si 'state' est null
+                echo "<button class='btn btn-primary grid-button' id='btn-{$button['id']}' data-button-id='{$button['id']}' data-button-state='{$buttonState}' onclick='updateButtonState({$button['id']})'>{$button['id']}</button>";
+            }
+        ?>
         </div>
     </div>
     
-    <!-- Modal -->
-    <div class="modal fade" id="buttonModal" tabindex="-1" role="dialog" aria-labelledby="buttonModalLabel" aria-hidden="true">
+        <!-- Modal -->
+        <div class="modal fade" id="buttonModal" tabindex="-1" role="dialog" aria-labelledby="buttonModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -50,8 +59,6 @@
                             <div id="my-qr-reader"></div>
                         </div>
                         <p class="font-weight-normal" id="Tri_item" style='visibility: collapse;'>Valider le camion et passer l'emplacement en disponible.</p>  
-
-
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -67,5 +74,81 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="js/index.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        function updateButtonState(buttonId) {
+            const button = $(`#btn-${buttonId}`);
+            const buttonState = button.data('button-state');
+
+            $('#buttonNumberInput').val(buttonId);
+
+            switch (buttonState) {
+                case 'Disponible':
+                    $('#newState').val('Plein');
+                    $('#qrCodeSection').show();
+                    $('#qrCodeStatus').text('Valider le camion et passer l\'emplacement en disponible.').show();
+                    break;
+                case 'Plein':
+                    $('#newState').val('TDR');
+                    $('#qrCodeSection').show();
+                    $('#qrCodeStatus').text('Sélectionner un état pour le camion.').show();
+                    break;
+                case 'TDR':
+                case 'Sigma':
+                    $('#newState').val('Disponible');
+                    $('#qrCodeSection').show();
+                    $('#qrCodeStatus').text('Mettre l\'emplacement en libre.').show();
+                    break;
+                default:
+                    $('#newState').val(buttonState);
+                    $('#qrCodeSection').hide();
+                    $('#qrCodeStatus').hide();
+            }
+
+            $('#buttonModal').modal('show');
+        }
+
+        function saveValues() {
+            // Récupérer les valeurs du formulaire
+            var buttonNumber = document.getElementById('buttonNumberInput').value;
+            var newState = document.getElementById('newState').value;
+            var value = ''; // Assurez-vous de définir cette valeur correctement
+                
+            // Créer une instance de XMLHttpRequest
+            var xhr = new XMLHttpRequest();
+                
+            // Définir la fonction à appeler lorsque l'état de la requête change
+            xhr.onreadystatechange = function () {
+                if (this.readyState === XMLHttpRequest.DONE) {
+                    if (this.status === 200) {
+                        // La réponse du serveur
+                        var response = this.responseText;
+                        alert(response);
+                    
+                        // Fermer le modal
+                        $('#buttonModal').modal('hide');
+                    
+                        // Recharger la page pour voir les mises à jour
+                        location.reload();
+                    } else {
+                        console.error('Erreur:', this.statusText);
+                    }
+                }
+            };
+        
+            // Configurer la requête
+            xhr.open('POST', 'php/update_button.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+            // Préparer les données à envoyer
+            var data = 'button_number=' + encodeURIComponent(buttonNumber) +
+                       '&new_state=' + encodeURIComponent(newState) +
+                       '&value=' + encodeURIComponent(value);
+        
+            // Envoyer la requête
+            xhr.send(data);
+        }
+
+
+    </script>
 </body>
 </html>

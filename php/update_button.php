@@ -5,7 +5,7 @@ session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $buttonNumber = $_POST['button_number'];
-    $newState = $_POST['date'];
+    $newState = $_POST['new_state'];
     $value = $_POST['value'];
     $ipAddress = $_SERVER['REMOTE_ADDR'];
 
