@@ -10,6 +10,25 @@ $sqlite = new SQLiteCreateTable($pdo);
 $sqlite->createTables();
 $sqlite->initButtons();
 $buttons = $sqlite->fetchButtons();
+include 'php/db.php';
+
+session_start();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $buttonNumber = $_POST['button_number'];
+    $newState = $_POST['new_state'];
+    $value = $_POST['value'];
+    $ipAddress = $_SERVER['REMOTE_ADDR'];
+
+    $bdd = ouverture_bdd();
+
+    // Mettre à jour l'état du camion et enregistrer les informations du scan
+    update_camion_state($bdd, $buttonNumber, $newState, $value, $ipAddress);
+
+    // Fermer la connexion à la base de données
+    fermeture_bdd($bdd);
+}
+
 ?>
 
 <!DOCTYPE html> 
@@ -46,19 +65,23 @@ $buttons = $sqlite->fetchButtons();
                 </div>
                 <div class="modal-body">
                     <h1 id="num">Camion: </h1>
-                    <form id="updateForm">
-                    <input type="hidden" id="buttonNumberInput" name="button_number">
-                        <div class="form-group" id="Plein_item" style='visibility: collapse;'>
+                    <form id="updateForm" method="POST" action="">
+                        <input type="hidden" id="buttonNumberInput" name="button_number">
+                        <div class="form-group" id="Plein_item" style='display: none;'>
                             <label for="newState">Passage en :</label>
                             <select class="form-control" id="newState" name="new_state">
-                                <option value="sigma">Sigma</option>
-                                <option value="tdr">TDR</option>
+                                <option value="Sigma">Sigma</option>
+                                <option value="TDR">TDR</option>
+                                <option value="En cours" style="visibility:collapse;">En cours</option>
+                                <option value="Disponible" style="visibility:collapse;">Disponible</option>
+                                <option value="Plein" style="visibility:collapse;">Plein</option>
                             </select>
                         </div>
-                        <div class="section" id="Disponible_item">
+                        <div class="section" id="Disponible_item" style='display: none;'>
                             <div id="my-qr-reader"></div>
                         </div>
-                        <p class="font-weight-normal" id="Tri_item" style='visibility: collapse;'>Valider le camion et passer l'emplacement en disponible.</p>  
+                        <p class="font-weight-normal" id="Tri_item" style='display: none;'>Valider le camion et passer l'emplacement en disponible.</p>  
+                        <input type="hidden" id="qrValue" name="value">
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -81,71 +104,55 @@ $buttons = $sqlite->fetchButtons();
 
             $('#buttonNumberInput').val(buttonId);
 
-            var newStateSelect = document.getElementById('newState');
             var qrCodeSection = document.getElementById('Disponible_item');
             var qrCodeStatus = document.getElementById('Tri_item');
-
+            var selector = document.getElementById('Plein_item');
+            console.log("\nqrCodeSection"+qrCodeSection);
+            console.log("\nqrCodeStatus"+qrCodeStatus);
+            console.log("\nselector"+selector);
             switch (buttonState) {
                 case 'Disponible':
-                    newStateSelect.value = 'Plein';
+                    setSelectorToValue('Plein');
                     qrCodeSection.style.display = 'block';
-                    qrCodeStatus.innerHTML = 'Valider le camion et passer l\'emplacement en disponible.';
                     qrCodeStatus.style.display = 'block';
+                    selector.style.display = 'none';
                     break;
                 case 'Plein':
-                    newStateSelect.value = 'TDR';
-                    qrCodeSection.style.display = 'block';
-                    qrCodeStatus.innerHTML = 'Sélectionner un état pour le camion.';
-                    qrCodeStatus.style.display = 'block';
+                    selector.style.display = 'block';
+                    setSelectorToValue('Sigma');
+                    qrCodeSection.style.display = 'none';
+                    qrCodeStatus.style.display = 'none';
                     break;
                 case 'TDR':
                 case 'Sigma':
-                    newStateSelect.value = 'Disponible';
-                    qrCodeSection.style.display = 'block';
-                    qrCodeStatus.innerHTML = 'Mettre l\'emplacement en libre.';
+                    setSelectorToValue('Disponible');
+                    qrCodeSection.style.display = 'none';
                     qrCodeStatus.style.display = 'block';
+                    selector.style.display = 'none';
                     break;
                 default:
-                    newStateSelect.value = buttonState;
                     qrCodeSection.style.display = 'none';
                     qrCodeStatus.style.display = 'none';
+                    selector.style.display = 'none';
             }
         
             $('#buttonModal').modal('show');
         }
 
-        function saveValues() {
-            var buttonNumberInput= document.querySelector('#buttonNumberInput')
-            var buttonNumber = buttonNumberInput.dataset.buttonId;
-            var e=document.getElementById('newState');
-            var newState = e.options[e.selectedIndex].text;
-            var value = sessionStorage.getItem("decodeText");
-        
-            var xhr = new XMLHttpRequest();
-
-            xhr.onreadystatechange = function () {
-                if (this.readyState === XMLHttpRequest.DONE) {
-                    if (this.status === 200) {
-                        var response = this.responseText;
-                        alert(response);
-                    
-                        $('#buttonModal').modal('hide');
-                        location.reload();
-                    } else {
-                        console.error('Erreur:', this.statusText);
-                    }
-                }
-            };
-
-            xhr.open('POST', 'php/update_button.php', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-            var data = 'button_number=' + encodeURIComponent(buttonNumber) +
-                       '&new_state=' + encodeURIComponent(newState) +
-                       '&value=' + encodeURIComponent(value);
-
-            xhr.send(data);
+        function setSelectorToValue(desiredValue) {
+            const selectElement = document.getElementById('newState');
+            selectElement.value = desiredValue;
         }
-</script>
+        
+        function saveValues() {
+            var buttonNumber = document.querySelector('#buttonNumberInput').value;
+            var newState = document.getElementById('newState').value;
+            var value = sessionStorage.getItem("decodeText");
+
+            document.getElementById('qrValue').value = value;
+
+            document.getElementById('updateForm').submit();
+        }
+    </script>
 </body>
 </html>
