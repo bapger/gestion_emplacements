@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="buttonModalLabel">Update Button State</h5>
+                    <h5 class="modal-title" id="buttonModalLabel">Enregistrer une manutention</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -72,9 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <select class="form-control" id="newState" name="new_state">
                                 <option value="Sigma">Sigma</option>
                                 <option value="TDR">TDR</option>
-                                <option value="En cours" style="visibility:collapse;">En cours</option>
-                                <option value="Disponible" style="visibility:collapse;">Disponible</option>
-                                <option value="Plein" style="visibility:collapse;">Plein</option>
+                                <option value="En cours" style="display: none;">En cours</option>
+                                <option value="Disponible" style="display: none;">Disponible</option>
+                                <option value="Plein" style="display: none;">Plein</option>
                             </select>
                         </div>
                         <div class="section" id="Disponible_item" style='display: none;'>
@@ -148,7 +148,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             var buttonNumber = document.querySelector('#buttonNumberInput').value;
             var newState = document.getElementById('newState').value;
             var value = sessionStorage.getItem("decodeText");
-
+            const button = $(`#btn-${buttonNumber}`);
+            button.data('button-state',newState);
             document.getElementById('qrValue').value = value;
 
             document.getElementById('updateForm').submit();

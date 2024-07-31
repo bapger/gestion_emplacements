@@ -9,10 +9,11 @@ body {
 .content {
     flex-grow: 1;
     position: relative;
-    background-image: url('img/fond.png');
+    /*background-image: url('img/fond.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    */
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -39,27 +40,17 @@ body {
     line-height: 1.5;
 }
 
-#Disponible {
+[data-button-state=Disponible] {
     background-color: transparent;
 }
-#TDR {
+[data-button-state=TDR] {
     background-color: aqua;
 }
-#Sigma {
+[data-button-state=Sigma] {
     background-color: crimson;
 }
-#Plein {
-    background-color: transparent;
-}
-
-#Disponible_item {
-    background-color: transparent;
-}
-#Tri_item {
-    background-color: crimson;
-}
-#Plein_item {
-    background-color: transparent;
+[data-button-state=Plein] {
+    background-color: grey;
 }
 
 #preview {
