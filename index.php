@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <head>
     <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Gestion d'emplacements</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -78,10 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </select>
                         </div>
                         <div class="section" id="Disponible_item" style='display: none;'>
-                            <div id="my-qr-reader"></div>
+                            <input id="value" name="value">
                         </div>
-                        <p class="font-weight-normal" id="Tri_item" style='display: none;'>Valider le camion et passer l'emplacement en disponible.</p>  
-                        <input type="hidden" id="qrValue" name="value">
+                        <div class="section" id="Tri_item" style='display: none;'>
+                            <input id="value" name="value">
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -96,7 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="js/index.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
         function updateButtonState(buttonId) {
             const button = $(`#btn-${buttonId}`);
@@ -105,34 +106,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $('#buttonNumberInput').val(buttonId);
 
             var qrCodeSection = document.getElementById('Disponible_item');
-            var qrCodeStatus = document.getElementById('Tri_item');
+            /* var qrCodeStatus = document.getElementById('Tri_item'); */
             var selector = document.getElementById('Plein_item');
             console.log("\nqrCodeSection"+qrCodeSection);
-            console.log("\nqrCodeStatus"+qrCodeStatus);
+            /* console.log("\nqrCodeStatus"+qrCodeStatus); */
             console.log("\nselector"+selector);
             switch (buttonState) {
                 case 'Disponible':
                     setSelectorToValue('Plein');
                     qrCodeSection.style.display = 'block';
-                    qrCodeStatus.style.display = 'block';
+                    /* qrCodeStatus.style.display = 'block'; */
                     selector.style.display = 'none';
                     break;
                 case 'Plein':
                     selector.style.display = 'block';
                     setSelectorToValue('Sigma');
                     qrCodeSection.style.display = 'none';
-                    qrCodeStatus.style.display = 'none';
+                    /* qrCodeStatus.style.display = 'none'; */
                     break;
                 case 'TDR':
                 case 'Sigma':
                     setSelectorToValue('Disponible');
                     qrCodeSection.style.display = 'none';
-                    qrCodeStatus.style.display = 'block';
+                    /* qrCodeStatus.style.display = 'block'; */
                     selector.style.display = 'none';
                     break;
                 default:
                     qrCodeSection.style.display = 'none';
-                    qrCodeStatus.style.display = 'none';
+                    /* qrCodeStatus.style.display = 'none'; */
                     selector.style.display = 'none';
             }
         
@@ -147,10 +148,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function saveValues() {
             var buttonNumber = document.querySelector('#buttonNumberInput').value;
             var newState = document.getElementById('newState').value;
-            var value = sessionStorage.getItem("decodeText");
+            var value = document.getElementById('value').value;
             const button = $(`#btn-${buttonNumber}`);
             button.data('button-state',newState);
-            document.getElementById('qrValue').value = value;
 
             document.getElementById('updateForm').submit();
         }
